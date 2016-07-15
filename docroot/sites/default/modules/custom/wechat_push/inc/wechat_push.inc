@@ -141,7 +141,7 @@ function getSHA1($token, $timestamp, $nonce, $encrypt_msg)
   }
 }
 
-function wechat_callback(){
+/*function wechat_callback(){
   watchdog('wechat', '111');
   module_load_include('php', 'wechat_push', 'php/WXBizMsgCrypt');
   $encodingAesKey = variable_get('encodingAesKey', "");
@@ -167,4 +167,17 @@ function wechat_callback(){
   } else {
     print("ERR: " . $errCode . "\n\n");
   }
+}*/
+
+
+function wechat_callback(){
+  module_load_include('php', 'wechat_push', 'sdk2/qywechat.class');
+  $options = array(
+    'token' => variable_get('token', ""),
+    'appid' => variable_get('wechat_appid', ""),
+    'appsecret' => variable_get('wechat_appsecret', ""),
+  );
+  $we_obj = new Wechat($options);
+  $we_obj->valid();
+
 }
