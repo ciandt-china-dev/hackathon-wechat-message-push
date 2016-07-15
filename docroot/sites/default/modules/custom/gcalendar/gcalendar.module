@@ -185,6 +185,8 @@ function gcalendar_set_up_watch_channel() {
     $channel->setAddress("https://hackathon-wx2.ciandt.cn/gcalendar");
 
     $return = $service->events->watch('primary', $channel);
+
+    watchdog('calendar', '<pre>' . var_export($return, TRUE) . '</pre>');
     
     if ($channel_id  = $return->getId()) {
       $user->field_gcalendar_watch_channel_id[LANGUAGE_NONE][0]['value'] = $channel_id;
