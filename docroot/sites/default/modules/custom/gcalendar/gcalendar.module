@@ -12,15 +12,9 @@
 function gcalendar_menu() {
   $items = array();
 
-  $items['gcalendar_gdrive_create_file'] = array(
-    'title' => 'Gdrive File Upload',
-    'page callback' => 'gcalendar_file_upload',
-    'access arguments' => array('access content'),
-  );
-
   $items['gcalendar'] = array(
     'title' => 'gcalendar',
-    'page callback' => 'gcalendar_list_files',
+    'page callback' => 'gcalendar_callback',
     'access arguments' => array('view google docs'),
   );
 
@@ -41,6 +35,10 @@ function gcalendar_menu() {
   );
 
   return $items;
+}
+
+function gcalendar_callback() {
+  watchdog('calendar', var_export($_POST, TRUE));
 }
 
 /**
