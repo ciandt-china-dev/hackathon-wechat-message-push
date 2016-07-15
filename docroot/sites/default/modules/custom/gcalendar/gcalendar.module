@@ -59,17 +59,6 @@ function gcalendar_callback() {
   $channel_id = $_SERVER['HTTP_X_GOOG_CHANNEL_ID'];
   $resource_id = $_SERVER['HTTP_X_GOOG_RESOURCE_ID'];
 
-  $client = _gcalendar_get_google_client();
-
-  $channel = new Google_Service_Calendar_Channel();
-  $channel->setId($channel_id);
-  $channel->setResourceId($resource_id);
-
-  $service = new Google_Service_Calendar($client);
-  $service->channels->stop($channel);
-  
-  drupal_exit();
-  
   $query = new EntityFieldQuery();
 
   $query->entityCondition('entity_type', 'user')
@@ -85,6 +74,17 @@ function gcalendar_callback() {
     $users = entity_load('user', $uids);
     $user = reset($users);
   }
+
+  $client = _gcalendar_get_google_client();
+
+  $channel = new Google_Service_Calendar_Channel();
+  $channel->setId($channel_id);
+  $channel->setResourceId($resource_id);
+
+  $service = new Google_Service_Calendar($client);
+  $service->channels->stop($channel);
+
+  drupal_exit();
 
   watchdog('calendar', '<pre>' . var_export($user, TRUE) . '</pre>');
   
