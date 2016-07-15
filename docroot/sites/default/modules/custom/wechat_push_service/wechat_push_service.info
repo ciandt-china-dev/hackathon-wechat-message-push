@@ -1,0 +1,5 @@
+name = Wechat Push Service
+description = Receive third-part messages and send message via wechat API.
+package = Wechat Push
+core = 7.x
+files[] = wechat_push_service.inc

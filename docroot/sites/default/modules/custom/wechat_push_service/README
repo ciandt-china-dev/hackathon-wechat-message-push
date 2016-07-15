@@ -1,0 +1,6 @@
+
+
+# Example code :
+
+$push = new WechatPush($account, $message);
+$push->push();

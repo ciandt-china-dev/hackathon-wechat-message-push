@@ -64,12 +64,12 @@ function _wechat_init_obj() {
   return $we_obj;
 }
 
-function wechat_set_message() {
+function wechat_set_message($account = NULL, $content = NULL) {
   $touser = 'linwuhen';
   $toparty = '';
   $totag = '';
   $agentid = variable_get('agentid', "");
-  $content = 'this is test';
+  $content = isset($content) ? $content : 'this is test';
 
   $we_obj = _wechat_init_obj();
   $access_token = wechat_get_access_token();
