@@ -151,6 +151,8 @@ function gcalendar_get_google_token($state = array()) {
     $auth_obj = json_decode($json_response);
     $user->data['gcalender_access_token'] = $auth_obj->access_token;
     $user->data['gcalender_refresh_token'] = $auth_obj->refresh_token;
+    
+    user_save($user);
 
     watchdog('gcalendar', 'access token: @token', array('@token' => $auth_obj->access_token), WATCHDOG_DEBUG);
     watchdog('gcalendar', 'refresh token: @token', array('@token' => $auth_obj->refresh_token), WATCHDOG_DEBUG);
@@ -245,7 +247,7 @@ function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $
     $client->setClientId($client_id ? $client_id : $connection_info['client_id']);
     $client->setClientSecret($client_secret ? $client_secret : $connection_info['client_secret']);
     $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar' . $redirect_uri);
-    $client->addScope("https://www.googleapis.com/auth/drive");
+    $client->addScope("https://www.googleapis.com/auth/calender");
     
     if (isset($user->data['gcalender_access_token'])) {
       $client->setAccessToken($user->data['gcalender_access_token']);
