@@ -2133,7 +2133,6 @@ class Prpcrypt
      */
     public function decrypt($encrypted, $appid)
     {
-		watchdog('wachat_push', 222);
         try {
             //使用BASE64对需要解密的字符串进行解码
             $ciphertext_dec = base64_decode($encrypted);
@@ -2144,7 +2143,6 @@ class Prpcrypt
             $decrypted = mdecrypt_generic($module, $ciphertext_dec);
             mcrypt_generic_deinit($module);
             mcrypt_module_close($module);
-			watchdog('wachat_push', 444);
         } catch (Exception $e) {
             return array(ErrorCode::$DecryptAESError, null);
         }
@@ -2162,7 +2160,6 @@ class Prpcrypt
             $xml_len = $len_list[1];
             $xml_content = substr($content, 4, $xml_len);
             $from_appid = substr($content, $xml_len + 4);
-			watchdog('wachat_push', 555);
         } catch (Exception $e) {
             //print $e;
             return array(ErrorCode::$IllegalBuffer, null);
