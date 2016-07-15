@@ -1,0 +1,253 @@
+<?php
+
+/**
+ * @file
+ * A module to integrate Drupal with Google Drive.
+ * Created by:  James Barnett, Babson College 2014.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function gcalendar_menu() {
+  $items = array();
+
+  $items['gcalendar_gdrive_create_file'] = array(
+    'title' => 'Gdrive File Upload',
+    'page callback' => 'gcalendar_file_upload',
+    'access arguments' => array('access content'),
+  );
+
+  $items['gcalendar'] = array(
+    'title' => 'gcalendar',
+    'page callback' => 'gcalendar_list_files',
+    'access arguments' => array('view google docs'),
+  );
+
+  $items['admin/config/content/gcalendar'] = array(
+    'title' => 'GCalendar Settings',
+    'description' => 'Configuration of who can upload to google docs from an OG gcalendar block',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('gcalendar_settings_form'),
+    'access arguments' => array('administer gcalendar'),
+    'file' => 'gcalendar.admin.inc',
+  );
+
+  $items['gcalendar_get_google_token'] = array(
+    'title' => 'gcalendar',
+    'page callback' => 'gcalendar_get_google_token_page',
+    'access arguments' => array('administer gcalendar'),
+    'file' => 'gcalendar.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Get the refresh token.
+ *
+ * The refresh token most be requested to google, which involves redriecting to
+ * google for it so the user can confirm the permissions being asked for.
+ *
+ * @param $state
+ *   Additional state information that will be returned to final page.
+ */
+function gcalendar_get_google_token($state = array()) {
+  $url = "https://accounts.google.com/o/oauth2/auth";
+  $connection_info = gcalendar_get_connection_settings();
+  $client_id = $connection_info['client_id'];
+  $client_secret = $connection_info['client_secret'];
+  $redirect_uri = "http://" . $_SERVER['HTTP_HOST'] . "/gcalendar_get_google_token";
+  $access_type = "offline";
+  $approval_prompt = "force";
+  $grant_type = "authorization_code";
+  $scope = "https://www.googleapis.com/auth/calendar";
+
+
+  $params_request = array(
+    "response_type" => "code",
+    "client_id" => "$client_id",
+    "redirect_uri" => "$redirect_uri",
+    "access_type" => "$access_type",
+    "approval_prompt" => "$approval_prompt",
+    "scope" => "$scope",
+    'state' => $state,
+  );
+  // To make sure the request is valid, as suggested by google documentation.
+  $params_request['state']['token'] = drupal_get_token($client_secret);
+  $params_request['state'] = serialize($params_request['state']);
+
+  $request_to = $url . '?' . http_build_query($params_request);
+
+  if (isset($_GET['code'])) {
+    // try to get an access token
+    $code = $_GET['code'];
+    $url = 'https://accounts.google.com/o/oauth2/token';
+    $params = array(
+      "code" => $code,
+      "client_id" => "$client_id",
+      "client_secret" => "$client_secret",
+      "redirect_uri" => "$redirect_uri",
+      "grant_type" => "$grant_type"
+    );
+
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_POST, TRUE);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+    curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    $json_response = curl_exec($curl);
+    curl_close($curl);
+
+    $auth_obj = json_decode($json_response);
+    $result = array();
+    $result['refresh_token'] = $auth_obj->refresh_token;
+    $result['access_token'] = $auth_obj->access_token;
+    return $result;
+  }
+  else {
+    return array('redirect' => $request_to);
+  }
+}
+
+/**
+ * Get the client ID, password, and refresh token.
+ *
+ * @param $use_og
+ *   Check OG group.
+ * @param @group_context
+ *   Instead of using current group context, use this.
+ */
+function gcalendar_get_connection_settings($use_og = TRUE, $group_context = NULL) {
+  $return = array();
+  $return['client_id'] = variable_get('gcalendar_clientid', '');
+  $return['client_secret'] = variable_get('gcalendar_secret', '');
+  $return['refresh_token'] = variable_get('gcalendar_refresh_token', '');
+  if ($use_og) {
+    $return = gcalendar_get_connection_settings_from_og($group_context) + $return;
+  }
+  drupal_alter('gcalendar_connection_settings', $return, $use_og, $group_context);
+  return $return;
+}
+
+/**
+ * Get the client ID, password, and refresh token.
+ *
+ * @param @group_context
+ *   Instead of using current group context, use this.
+ */
+function gcalendar_get_connection_settings_from_og($group_context = NULL) {
+  $return = array();
+  if (module_exists('og_context')) {
+    $current_group = $group_context ? $group_context : og_context();
+    if ($current_group && ($entities = entity_load($current_group['group_type'], array($current_group['gid']))) && ($entity = reset($entities))) {
+      // Override any fields set to override.
+      $fields = array(
+        'client_id' => 'gcalendar_og_field_gdrive_client_id',
+        'client_secret' => 'gcalendar_og_field_gdrive_client_secret',
+        'refresh_token' => 'gcalendar_og_field_gdrive_refresh_token',
+      );
+      foreach ($fields as $var => $variable_name) {
+        if ($field_name = variable_get($variable_name)) {
+          if ($items = field_get_items($current_group['group_type'], $entity, $field_name)) {
+            $return[$var] = $items[0]['value'];
+          }
+        }
+      }
+      // This allows alteration by group like for og_subgroups.
+      drupal_alter('gcalendar_connection_settings_from_og', $return, $entity, $current_group['group_type']);
+    }
+  }
+  return $return;
+}
+
+/*
+ *  Function connects to google drive.
+ */
+function gcalendar_gdrive_connect($redirect_uri = NULL, $client_id = NULL, $client_secret = NULL, $refresh_token = NULL) {
+  $return_result = array();
+  if ($path = libraries_get_path('google-api-php-client')) {
+    require_once $path.'/vendor/autoload.php';
+  }
+  else {
+    watchdog('gcalendar', 'Unable to find google api library, see gcalendar README for instructions.', array(), WATCHDOG_ERROR);
+    if (user_access('administer gcalendar')) {
+      drupal_set_message(t('Unable to find google drive library, see README.txt for installation instructions.'), 'error');
+    }
+    else {
+      drupal_set_message(t('Unable to connect to google drive, please contact an administrator'), 'error');
+    }
+    return FALSE;
+  }
+
+  $connection_info = gcalendar_get_connection_settings();
+  try {
+    $client = new Google_Client();
+    $client->setClientId($client_id ? $client_id : $connection_info['client_id']);
+    $client->setClientSecret($client_secret ? $client_secret :  $connection_info['client_secret']);
+    $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar' . $redirect_uri);
+    $client->setAccessType('offline');
+    $client->addScope("https://www.googleapis.com/auth/drive");
+    $service = new Google_Service_Drive($client);
+
+    if (isset($_REQUEST['logout'])) {
+      unset($_SESSION['upload_token']);
+    }
+
+    if (isset($_GET['code'])) {
+      $client->authenticate($_GET['code']);
+      $_SESSION['upload_token'] = $client->getAccessToken();
+      $redirect = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+      header('Location: ' . filter_var($redirect, FILTER_SANITIZE_URL));
+    }
+
+    if (isset($_SESSION['upload_token']) && $_SESSION['upload_token']) {
+      $client->setAccessToken($_SESSION['upload_token']);
+      if ($client->isAccessTokenExpired()) {
+        unset($_SESSION['upload_token']);
+      }
+    }
+    else {
+      $auth_url = $client->createAuthUrl();
+    }
+  }
+  catch (Exception $e) {
+    watchdog('gcalendar', 'Unable to connect to google, error: @error', array('@error' => $e->getMessage()), WATCHDOG_ERROR);
+    if (user_access('administer gcalendar')) {
+      drupal_set_message(t('Unable to connect to google drive, error @error.', array('@error' => $e->getMessage())), 'error');
+    }
+    else {
+      drupal_set_message(t('Unable to connect to google drive, please contact an administrator'), 'error');
+    }
+    return FALSE;
+  }
+  try {
+    $refresh_token = $refresh_token ? $refresh_token : $connection_info['refresh_token'];
+    if (!empty($refresh_token) && ($client->isAccessTokenExpired() || $force)) {
+      $client->refreshToken($refresh_token);
+    }
+  }
+  catch (Exception $e) {
+    watchdog('gcalendar', 'Unable to refresh token: @error', array('@error' => $e->getMessage()), WATCHDOG_ERROR);
+    if (user_access('administer gcalendar')) {
+      drupal_set_message(t('Unable to refresh the token: @error.', array('@error' => $e->getMessage())), 'error');
+    }
+    else {
+      drupal_set_message(t('Unable to refresh the token, please contact an administrator.'), 'error');
+    }
+    return array();
+  }
+  if (!$client->getAccessToken()) {
+    return array();
+  }
+
+  $return_result['client'] = $client;
+  $return_result['service'] = $service;
+  if (isset($auth_url)) {
+    $return_result['authUrl'] = $auth_url;
+  }
+  return $return_result;
+}
+

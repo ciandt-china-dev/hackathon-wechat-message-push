@@ -1,0 +1,4 @@
+name = gcalendar
+core = 7.x
+description = google calendar
+dependencies[] = libraries
