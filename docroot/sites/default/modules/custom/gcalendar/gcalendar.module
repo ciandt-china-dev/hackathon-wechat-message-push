@@ -38,7 +38,7 @@ function gcalendar_menu() {
 }
 
 function gcalendar_callback() {
-  $header = drupal_get_http_header();
+  $header = getallheaders();
   watchdog('calendar', var_export($header, TRUE));
   watchdog('calendar', var_export($_POST, TRUE));
 
