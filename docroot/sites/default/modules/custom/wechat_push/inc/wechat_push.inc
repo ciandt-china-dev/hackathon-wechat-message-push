@@ -90,6 +90,7 @@ function wechat_set_message() {
 }
 
 function wechat_callback() {
+  watchdog('wechat_push','begin');
   $msg_signature = $_GET['msg_signature'];
   $timestamp = $_GET['timestamp'];
   $nonce = $_GET['nonce'];
@@ -102,6 +103,7 @@ function wechat_callback() {
   if (strlen($encodingAesKey) != 43) {
     return;
   }
+  watchdog('wechat_push', 'encodingAesKey');
   module_load_include('php', 'wechat_push', 'sdk/qywechat.class');
   $pc = new Prpcrypt($encodingAesKey);
 
@@ -109,10 +111,12 @@ function wechat_callback() {
   if ($array['0'] != 0) {
     return;
   }
+  watchdog('wechat_push', 'encodingAesKey');
   $signature = $array[1];
   if ($signature != $msg_signature) {
     return;
   }
+  watchdog('wechat_push', 'qianmingguol');
 
   $result = $pc->decrypt($echostr, $corpId);
   if ($result[0] != 0) {
@@ -120,6 +124,7 @@ function wechat_callback() {
   }
 
   $sReplyEchoStr = $result[1];
+  watchdog('wechat_push', $sReplyEchoStr);
   HttpUtils.SetResponce($sReplyEchoStr);
 }
 
