@@ -46,6 +46,8 @@ function gcalendar_menu() {
 }
 
 function gcalendar_callback() {
+  global $user;
+  
   // TODO get user form channel id
   watchdog('calendar', var_export($_SERVER, TRUE));
 
@@ -221,6 +223,8 @@ function gcalendar_set_up_watch_channel() {
 }
 
 function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $client_secret = NULL, $refresh_token = NULL) {
+  global $user;
+  
   if ($path = libraries_get_path('google-api-php-client')) {
     require_once $path.'/vendor/autoload.php';
   }
@@ -242,16 +246,18 @@ function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $
     $client->setClientSecret($client_secret ? $client_secret : $connection_info['client_secret']);
     $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar' . $redirect_uri);
     $client->addScope("https://www.googleapis.com/auth/drive");
-
-    if (isset($_SESSION['upload_token']) && $_SESSION['upload_token']) {
-      $client->setAccessToken($_SESSION['upload_token']);
+    
+    if (isset($user->data['gcalender_access_token'])) {
+      $client->setAccessToken($user->data['gcalender_access_token']);
       if ($client->isAccessTokenExpired()) {
-        unset($_SESSION['upload_token']);
+        //todo
       }
     }
     else {
-      $auth_url = $client->createAuthUrl();
+      // todo
+      return false;
     }
+    
     return $client;
   }
   catch (Exception $e) {
