@@ -49,7 +49,7 @@ function gcalendar_callback() {
   global $user;
   
   // TODO get user form channel id
-  watchdog('calendar', '<pre>' . var_export($_SERVER['X-Goog-Channel-ID'], TRUE) . '</pre>');
+  watchdog('calendar', '<pre>' . var_export($_SERVER['X-Google-Channel-ID'], TRUE) . '</pre>');
 
   if (!isset($_SERVER['X-Goog-Channel-ID'])) {
     exit();
