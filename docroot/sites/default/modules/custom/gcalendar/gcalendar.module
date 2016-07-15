@@ -188,6 +188,8 @@ function gcalendar_set_up_watch_channel() {
     
     if ($channel_id  = $return->getId()) {
       $user->field_gcalendar_watch_channel_id[LANGUAGE_NONE][0]['value'] = $channel_id;
+      $user->field_gcalendar_watch_channel_id[LANGUAGE_NONE][0]['format'] = null;
+      $user->field_gcalendar_watch_channel_id[LANGUAGE_NONE][0]['safe_value'] = $channel_id;
       
       user_save($user);
     }
