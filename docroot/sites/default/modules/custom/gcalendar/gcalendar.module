@@ -49,11 +49,12 @@ function gcalendar_callback() {
   global $user;
   
   // TODO get user form channel id
-  watchdog('calendar', var_export($_SERVER, TRUE));
+  watchdog('calendar', '<pre>' . var_export($_SERVER['X-Goog-Channel-ID'], TRUE) . '</pre>');
 
   if (!isset($_SERVER['X-Goog-Channel-ID'])) {
     exit();
   }
+  
   $channel_id = $_SERVER['X-Goog-Channel-ID'];
 
   $query = new EntityFieldQuery();
@@ -64,13 +65,17 @@ function gcalendar_callback() {
     ->range(0, 1);
 
   $result = $query->execute();
+  
+  watchdog('calendar', '<pre>' . var_export($result, TRUE) . '</pre>');
 
-  if (isset($result['node'])) {
+  if (isset($result['user'])) {
     $uids = array_keys($result['user']);
     $users = entity_load('user', $uids);
     $user = reset($users);
   }
 
+  watchdog('calendar', '<pre>' . var_export($user, TRUE) . '</pre>');
+  
   $client = _gcalendar_get_google_client();
   
   $update = array();
@@ -83,6 +88,7 @@ function gcalendar_callback() {
     // no need to have a full sync here
   }
 
+  watchdog('calendar', '<pre>' . var_export($update, TRUE) . '</pre>');
   // TODO call wechat to send the updates
 
   http_response_code(200);
