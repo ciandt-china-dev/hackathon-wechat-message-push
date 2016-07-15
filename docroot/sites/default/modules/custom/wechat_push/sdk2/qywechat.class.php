@@ -332,6 +332,7 @@ class Wechat
         	    return false;
         	}
         }
+		watchdog('wechat', '111');
         $pc = new Prpcrypt($this->encodingAesKey);
         $array = $pc->decrypt($encryptStr,$this->appid);
         if (!isset($array[0]) || ($array[0] != 0)) {
