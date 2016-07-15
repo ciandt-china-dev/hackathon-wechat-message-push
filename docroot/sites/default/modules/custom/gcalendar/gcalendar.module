@@ -109,7 +109,7 @@ function gcalendar_get_google_token($state = array()) {
   $client = new Google_Client();
   $client->setClientId($connection_info['client_id']);
   $client->setClientSecret($connection_info['client_secret']);
-  $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar');
+  $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar_get_google_token');
   $client->addScope("https://www.googleapis.com/auth/calendar");
   
   /************************************************
