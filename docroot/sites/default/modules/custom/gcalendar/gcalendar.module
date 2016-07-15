@@ -50,13 +50,13 @@ function gcalendar_callback() {
   
   // TODO get user form channel id
   watchdog('calendar', '<pre>' . var_export($_SERVER, TRUE) . '</pre>');
-  watchdog('calendar', '<pre>' . var_export($_SERVER['X-Google-Channel-ID'], TRUE) . '</pre>');
+  watchdog('calendar', '<pre>' . var_export($_SERVER['HTTP_X_GOOG_CHANNEL_ID'], TRUE) . '</pre>');
 
-  if (!isset($_SERVER['X-Google-Channel-ID'])) {
+  if (!isset($_SERVER['HTTP_X_GOOG_CHANNEL_ID'])) {
     exit();
   }
   
-  $channel_id = $_SERVER['X-Google-Channel-ID'];
+  $channel_id = $_SERVER['HTTP_X_GOOG_CHANNEL_ID'];
 
   $query = new EntityFieldQuery();
 
