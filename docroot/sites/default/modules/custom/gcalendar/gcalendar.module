@@ -30,7 +30,7 @@ function gcalendar_menu() {
 
   $items['gcalendar_get_google_token'] = array(
     'title' => 'Gcalendar Get Google Token',
-    'page callback' => 'gcalendar_get_google_token_page',
+    'page callback' => 'gcalendar_get_google_token',
     'access callback' => TRUE,
     'file' => 'gcalendar.admin.inc',
   );
@@ -53,7 +53,9 @@ function gcalendar_callback() {
 //  watchdog('calendar', '<pre>' . var_export($_SERVER['HTTP_X_GOOG_CHANNEL_ID'], TRUE) . '</pre>');
 
   if (!isset($_SERVER['HTTP_X_GOOG_CHANNEL_ID'])) {
-    exit();
+    http_response_code(200);
+
+    drupal_exit();
   }
   
   $channel_id = $_SERVER['HTTP_X_GOOG_CHANNEL_ID'];
@@ -72,6 +74,8 @@ function gcalendar_callback() {
 
 //  drupal_exit();
 
+//  $channel_id = '4c55f324-85a6-46ac-be7e-da29d6b77002';
+  
   $query = new EntityFieldQuery();
 
   $query->entityCondition('entity_type', 'user')
@@ -106,7 +110,10 @@ function gcalendar_callback() {
   
   user_save($user);
 
-  watchdog('calendar', '<pre>' . var_export($update, TRUE) . '</pre>');
+  watchdog('calendar changed events', '<pre>' . var_export($update, TRUE) . '</pre>');
+  
+  // TODO Theme event for output
+  
   // TODO call wechat to send the updates
 
   http_response_code(200);
@@ -129,6 +136,7 @@ function gcalendar_get_google_token($state = array()) {
   if ($path = libraries_get_path('google-api-php-client')) {
     require_once $path.'/vendor/autoload.php';
   }
+  
   $connection_info = gcalendar_get_connection_settings();
   $client = new Google_Client();
   $client->setClientId($connection_info['client_id']);
@@ -136,37 +144,22 @@ function gcalendar_get_google_token($state = array()) {
   $client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . '/gcalendar_get_google_token');
   $client->addScope("https://www.googleapis.com/auth/calendar");
   
-  /************************************************
-   * If we have a code back from the OAuth 2.0 flow,
-   * we need to exchange that with the
-   * Google_Client::fetchAccessTokenWithAuthCode()
-   * function. We store the resultant access token
-   * bundle in the session, and redirect to ourself.
-   ************************************************/
   if (isset($_GET['code'])) {
     $token = $client->authenticate($_GET['code']);
     $client->setAccessToken($token);
     
     $user->data['gcalender_access_token'] = $token;
-//    $user->data['gcalender_refresh_token'] = $auth_obj->refresh_token;
-//    $user->data['gcalender_auth_response'] = $json_response;
     
     user_save($user);
 
     watchdog('gcalendar', 'access token: @token', array('@token' => $token), WATCHDOG_DEBUG);
- //   watchdog('gcalendar', 'refresh token: @token', array('@token' => $auth_obj->refresh_token), WATCHDOG_DEBUG);
-    
-    $result = array();
-//    $result['refresh_token'] = $auth_obj->refresh_token;
-    $result['access_token'] = $token;
-    return $result;
+
+    // TODO redirect to other page
   }
   else {
     $authUrl = $client->createAuthUrl();
-    return array('redirect' => $authUrl);
+    drupal_goto($authUrl);
   }
-  
-  // TODO redirect back
 }
 
 /**
@@ -206,7 +199,8 @@ function gcalendar_set_up_watch_channel() {
     $channel->setId($channel_id);
     $channel->setType('web_hook');
     //$channel->setAddress("https://" . $_SERVER['HTTP_HOST'] . "/gcalendar");
-    $channel->setAddress("https://hackathon-wx2.ciandt.cn/gcalendar");
+    //$channel->setAddress("https://hackathon-wx2.ciandt.cn/gcalendar");
+    $channel->setAddress("https://nxbwuyulwc.localtunnel.me/gcalendar");
 
     $return = $service->events->watch('primary', $channel);
 
@@ -222,12 +216,6 @@ function gcalendar_set_up_watch_channel() {
   }
   catch (Exception $e) {
     watchdog('gcalendar', 'Unable to connect to google, error: @error', array('@error' => $e->getMessage()), WATCHDOG_ERROR);
-    if (user_access('administer gcalendar')) {
-      drupal_set_message(t('Unable to connect to google drive, error @error.', array('@error' => $e->getMessage())), 'error');
-    }
-    else {
-      drupal_set_message(t('Unable to connect to google drive, please contact an administrator'), 'error');
-    }
     return FALSE;
   }
 }
@@ -240,16 +228,11 @@ function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $
   }
   else {
     watchdog('gcalendar', 'Unable to find google api library, see gcalendar README for instructions.', array(), WATCHDOG_ERROR);
-    if (user_access('administer gcalendar')) {
-      drupal_set_message(t('Unable to find google drive library, see README.txt for installation instructions.'), 'error');
-    }
-    else {
-      drupal_set_message(t('Unable to connect to google drive, please contact an administrator'), 'error');
-    }
     return FALSE;
   }
 
   $connection_info = gcalendar_get_connection_settings();
+
   try {
     $client = new Google_Client();
     $client->setClientId($client_id ? $client_id : $connection_info['client_id']);
@@ -260,11 +243,12 @@ function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $
     if (isset($user->data['gcalender_access_token'])) {
       $client->setAccessToken($user->data['gcalender_access_token']);
       if ($client->isAccessTokenExpired()) {
-        //todo
+        watchdog('gcalendar', 'access token expired');
+        return false;
       }
     }
     else {
-      // todo
+      watchdog('gcalendar', 'no access token');
       return false;
     }
     
@@ -272,12 +256,6 @@ function _gcalendar_get_google_client($redirect_uri = NULL, $client_id = NULL, $
   }
   catch (Exception $e) {
       watchdog('gcalendar', 'Unable to connect to google, error: @error', array('@error' => $e->getMessage()), WATCHDOG_ERROR);
-      if (user_access('administer gcalendar')) {
-        drupal_set_message(t('Unable to connect to google drive, error @error.', array('@error' => $e->getMessage())), 'error');
-      }
-      else {
-        drupal_set_message(t('Unable to connect to google drive, please contact an administrator'), 'error');
-      }
       return FALSE;
     }
 }
@@ -293,21 +271,22 @@ function gcalendar_sync(Google_Service_Calendar $service, &$updated=array(), $pa
   if ($nextSyncToken) {
     $optParams['syncToken'] = $nextSyncToken;
   }
+
+  watchdog('gcalendar', 'Page Token: ' . $pageToken . 'Sync Token:' . $nextSyncToken);
   
   $events = $service->events->listEvents('primary', $optParams);
-  
-  while(!$nextSyncToken = $events->getNextSyncToken()) {
-    foreach ($events->getItems() as $event) {
-      if ($nextSyncToken) {
-        $updated[] = $event;
-        watchdog('calendar', '<pre>' . var_export($updated, TRUE) . '</pre>');
-      }
-      else {
-        // full sync here
-        // skip
-      }
-    }
 
+  foreach ($events->getItems() as $event) {
+    if ($nextSyncToken) {
+      $updated[] = $event;
+    }
+    else {
+      // full sync here
+      // skip
+    }
+  }
+
+  while(!$nextSyncToken = $events->getNextSyncToken()) {
     $pageToken = $events->getNextPageToken();
 
     return gcalendar_sync($service, $updated, $pageToken, $nextSyncToken);
