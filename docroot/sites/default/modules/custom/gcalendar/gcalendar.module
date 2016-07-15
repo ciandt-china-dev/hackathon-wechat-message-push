@@ -38,6 +38,8 @@ function gcalendar_menu() {
 }
 
 function gcalendar_callback() {
+  $header = drupal_get_http_header();
+  watchdog('calendar', var_export($header, TRUE));
   watchdog('calendar', var_export($_POST, TRUE));
 
   http_response_code(200); 
