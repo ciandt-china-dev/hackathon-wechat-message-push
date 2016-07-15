@@ -63,7 +63,7 @@ function gcalendar_callback() {
 
   $channel = new Google_Service_Calendar_Channel();
   $channel->setId($channel_id);
-  $channel->setResourceId($resource_id)
+  $channel->setResourceId($resource_id);
 
   $service = new Google_Service_Calendar($client);
   $service->channels->stop($channel);
