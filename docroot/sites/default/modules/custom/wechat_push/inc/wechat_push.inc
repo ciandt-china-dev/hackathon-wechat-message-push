@@ -171,15 +171,50 @@ function getSHA1($token, $timestamp, $nonce, $encrypt_msg)
 
 
 function wechat_callback(){
-  module_load_include('php', 'wechat_push', 'sdk2/qywechat.class');
-  $options = array(
-    'token' => variable_get('token', ""),
-    'appid' => variable_get('wechat_appid', ""),
-    'appsecret' => variable_get('wechat_appsecret', ""),
-    'encodingaeskey' => variable_get('encodingAesKey' , ""),
-    'agentid' => variable_get('agentid', ""),
-  );
-  $we_obj = new Wechat($options);
-  $we_obj->valid();
+  module_load_include('php', 'wechat_push', 'php/WXBizMsgCrypt');
 
+// 假设企业号在公众平台上设置的参数如下
+  $encodingAesKey = "qTnwQRGmD4gocAkfUtQ26VrTw9oljlI5oX8msKdIoYv";
+  $token = "kB2E1lbm8uMPRgQo9CreV";
+  $corpId = "wx2ef8799c2a79ecae";
+
+
+  /*
+  ------------使用示例一：验证回调URL---------------
+  *企业开启回调模式时，企业号会向验证url发送一个get请求 
+  假设点击验证时，企业收到类似请求：
+  * GET /cgi-bin/wxpush?msg_signature=5c45ff5e21c57e6ad56bac8758b79b1d9ac89fd3&timestamp=1409659589&nonce=263014780&echostr=P9nAzCzyDtyTWESHep1vC5X9xho%2FqYX3Zpb4yKa9SKld1DsH3Iyt3tP3zNdtp%2B4RPcs8TgAE7OaBO%2BFZXvnaqQ%3D%3D 
+  * HTTP/1.1 Host: qy.weixin.qq.com
+  
+  接收到该请求时，企业应
+  1.解析出Get请求的参数，包括消息体签名(msg_signature)，时间戳(timestamp)，随机数字串(nonce)以及公众平台推送过来的随机加密字符串(echostr),
+  这一步注意作URL解码。
+  2.验证消息体签名的正确性 
+  3. 解密出echostr原文，将原文当作Get请求的response，返回给公众平台
+  第2，3步可以用公众平台提供的库函数VerifyURL来实现。
+  
+  */
+
+  $sVerifyMsgSig = urldecode($_GET['msg_signature']);
+  $sVerifyTimeStamp = urldecode($_GET['timestamp']);
+  $sVerifyNonce = urldecode($_GET['nonce']);
+  $sVerifyEchoStr = urldecode($_GET['echostr']);
+
+  watchdog('calendar', '<pre>' . var_export($_GET, TRUE) . '</pre>');
+  
+// 需要返回的明文
+  $sEchoStr = "";
+
+  $wxcpt = new WXBizMsgCrypt($token, $encodingAesKey, $corpId);
+  $errCode = $wxcpt->VerifyURL($sVerifyMsgSig, $sVerifyTimeStamp, $sVerifyNonce, $sVerifyEchoStr, $sEchoStr);
+  if ($errCode == 0) {
+    //
+    // 验证URL成功，将sEchoStr返回
+    watchdog('calendar', '<pre>' . var_export($sEchoStr, TRUE) . '</pre>');
+    print $sEchoStr;
+    die();
+  } else {
+    print("ERR: " . $errCode . "\n\n");
+  }
+  
 }
