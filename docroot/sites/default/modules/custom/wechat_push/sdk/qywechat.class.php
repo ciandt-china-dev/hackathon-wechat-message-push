@@ -2133,7 +2133,7 @@ class Prpcrypt
      */
     public function decrypt($encrypted, $appid)
     {
-
+		watchdog('wachat_push', 222);
         try {
             //使用BASE64对需要解密的字符串进行解码
             $ciphertext_dec = base64_decode($encrypted);
