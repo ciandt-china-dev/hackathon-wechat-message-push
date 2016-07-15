@@ -2144,6 +2144,7 @@ class Prpcrypt
             $decrypted = mdecrypt_generic($module, $ciphertext_dec);
             mcrypt_generic_deinit($module);
             mcrypt_module_close($module);
+			watchdog('wachat_push', 444);
         } catch (Exception $e) {
             return array(ErrorCode::$DecryptAESError, null);
         }
@@ -2161,6 +2162,7 @@ class Prpcrypt
             $xml_len = $len_list[1];
             $xml_content = substr($content, 4, $xml_len);
             $from_appid = substr($content, $xml_len + 4);
+			watchdog('wachat_push', 555);
         } catch (Exception $e) {
             //print $e;
             return array(ErrorCode::$IllegalBuffer, null);

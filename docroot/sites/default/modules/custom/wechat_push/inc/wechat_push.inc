@@ -94,7 +94,10 @@ function wechat_callback() {
   $timestamp = $_GET['timestamp'];
   $nonce = $_GET['nonce'];
   $echostr = $_GET['echostr'];
-
+  watchdog('11',$msg_signature);
+  watchdog('11',$timestamp);
+     watchdog('11',$nonce);
+        watchdog('11',$echostr);
   $token = variable_get('token', "");
   $encodingAesKey = variable_get('encodingAesKey', "");
   $corpId = variable_get('wechat_appid', "");
@@ -114,7 +117,7 @@ function wechat_callback() {
     return;
   }
   $result = $pc->decrypt($echostr, $corpId);
-  
+
   watchdog('wechat_push', 333);
   if ($result[0] != 0) {
     return $result[0];
