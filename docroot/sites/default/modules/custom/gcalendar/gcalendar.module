@@ -39,6 +39,8 @@ function gcalendar_menu() {
 
 function gcalendar_callback() {
   watchdog('calendar', var_export($_POST, TRUE));
+
+  http_response_code(200); 
 }
 
 /**
