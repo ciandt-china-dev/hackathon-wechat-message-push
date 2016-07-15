@@ -53,15 +53,14 @@ function gcalendar_callback() {
   watchdog('calendar', '<pre>' . var_export($_SERVER['HTTP_X_GOOG_CHANNEL_ID'], TRUE) . '</pre>');
 
   if (!isset($_SERVER['HTTP_X_GOOG_CHANNEL_ID'])) {
-    exit();
+//    exit();
   }
   
   $channel_id = $_SERVER['HTTP_X_GOOG_CHANNEL_ID'];
-
+  
   $query = new EntityFieldQuery();
 
   $query->entityCondition('entity_type', 'user')
-    ->entityCondition('bundle', 'article')
     ->fieldCondition('field_gcalendar_watch_channel_id', 'value', $channel_id, '=')
     ->range(0, 1);
 
@@ -78,16 +77,20 @@ function gcalendar_callback() {
   watchdog('calendar', '<pre>' . var_export($user, TRUE) . '</pre>');
   
   $client = _gcalendar_get_google_client();
+
+  $service = new Google_Service_Calendar($client);
   
   $update = array();
 
   if (isset($user->data['calendar_sync_token'])) {
     $syncToken = $user->data['calendar_sync_token'];
-    $user->data['calendar_sync_token'] = gcalendar_sync($client, $update, null, $syncToken);
+    $user->data['calendar_sync_token'] = gcalendar_sync($service, $update, null, $syncToken);
   }
   else {
-    // no need to have a full sync here
+    $user->data['calendar_sync_token'] = gcalendar_sync($service, $update);
   }
+  
+  user_save($user);
 
   watchdog('calendar', '<pre>' . var_export($update, TRUE) . '</pre>');
   // TODO call wechat to send the updates
@@ -274,7 +277,7 @@ function gcalendar_sync(Google_Service_Calendar $service, &$updated=array(), $pa
     $optParams['pageToken'] = $pageToken;
   }
   if ($nextSyncToken) {
-    $optParams['nextSyncToken'] = $nextSyncToken;
+    $optParams['syncToken'] = $nextSyncToken;
   }
   
   $events = $service->events->listEvents('primary', $optParams);
@@ -292,7 +295,7 @@ function gcalendar_sync(Google_Service_Calendar $service, &$updated=array(), $pa
 
     $pageToken = $events->getNextPageToken();
 
-    return gcalendar_sync($service, $pageToken, $nextSyncToken);
+    return gcalendar_sync($service, $updated, $pageToken, $nextSyncToken);
   }
   
   return $nextSyncToken;
