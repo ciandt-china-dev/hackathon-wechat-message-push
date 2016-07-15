@@ -3,7 +3,7 @@
  * @file
  * Enbrel admin from.
  */
-
+include_once "WXBizMsgCrypt.php";
 /**
  * wechat get access_token
  */
@@ -89,7 +89,7 @@ function wechat_set_message() {
   var_dump($result);
 }
 
-function wechat_callback() {
+/*function wechat_callback() {
   $msg_signature = $_GET['msg_signature'];
   $timestamp = $_GET['timestamp'];
   $nonce = $_GET['nonce'];
@@ -97,7 +97,6 @@ function wechat_callback() {
   $token = variable_get('token', "");
   $encodingAesKey = variable_get('encodingAesKey', "");
   $corpId = variable_get('wechat_appid', "");
-  watchdog('wechat',$echostr);
   if (strlen($encodingAesKey) != 43) {
     return;
   }
@@ -113,17 +112,14 @@ function wechat_callback() {
   if ($signature != $msg_signature) {
     return;
   }
-  watchdog('wachat', '222');
   $result = $pc->decrypt($echostr, $corpId);
   if ($result[0] != 0) {
     return $result[0];
   }
-  watchdog('wachat', '222');
   $sReplyEchoStr = $result[1];
-  watchdog('wachat', '1111');
   echo $sReplyEchoStr;
   exit();
-}
+}*/
 
 
 /**
@@ -142,5 +138,33 @@ function getSHA1($token, $timestamp, $nonce, $encrypt_msg)
   } catch (Exception $e) {
     print $e . "\n";
     return array(1, null);
+  }
+}
+
+function wechat_callback(){
+  module_load_include('php', 'wechat_push', 'php/WXBizMsgCrypt');
+  $encodingAesKey = variable_get('encodingAesKey', "");
+  $token = variable_get('token', "");
+  $corpId = variable_get('wechat_appid', "");
+  watchdog('wechat', '111');
+  $sVerifyMsgSig = $_GET['msg_signature'];
+// $sVerifyTimeStamp = HttpUtils.ParseUrl("timestamp");
+  $sVerifyTimeStamp = $_GET['timestamp'];
+// $sVerifyNonce = HttpUtils.ParseUrl("nonce");
+  $sVerifyNonce = $_GET['nonce'];
+// $sVerifyEchoStr = HttpUtils.ParseUrl("echostr");
+  $sVerifyEchoStr = $_GET['echostr'];
+
+// 需要返回的明文
+  $sEchoStr = "";
+
+  $wxcpt = new WXBizMsgCrypt($token, $encodingAesKey, $corpId);
+  $errCode = $wxcpt->VerifyURL($sVerifyMsgSig, $sVerifyTimeStamp, $sVerifyNonce, $sVerifyEchoStr, $sEchoStr);
+  if ($errCode == 0) {
+    //
+    // 验证URL成功，将sEchoStr返回
+    // HttpUtils.SetResponce($sEchoStr);
+  } else {
+    print("ERR: " . $errCode . "\n\n");
   }
 }
