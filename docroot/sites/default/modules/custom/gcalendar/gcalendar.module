@@ -299,7 +299,8 @@ function gcalendar_sync(Google_Service_Calendar $service, &$updated=array(), $pa
   while(!$nextSyncToken = $events->getNextSyncToken()) {
     foreach ($events->getItems() as $event) {
       if ($nextSyncToken) {
-        $updated[] = $event->getSummary();
+        $updated[] = $event;
+        watchdog('calendar', '<pre>' . var_export($updated, TRUE) . '</pre>');
       }
       else {
         // full sync here
