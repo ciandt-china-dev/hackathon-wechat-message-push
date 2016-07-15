@@ -15,7 +15,7 @@ function gcalendar_menu() {
   $items['gcalendar'] = array(
     'title' => 'gcalendar',
     'page callback' => 'gcalendar_callback',
-    'access arguments' => array('view google docs'),
+    'access callback' => TRUE,
   );
 
   $items['admin/config/content/gcalendar'] = array(
