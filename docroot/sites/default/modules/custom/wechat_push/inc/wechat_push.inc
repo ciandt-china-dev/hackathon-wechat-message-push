@@ -147,13 +147,13 @@ function wechat_callback(){
   $token = variable_get('token', "");
   $corpId = variable_get('wechat_appid', "");
   watchdog('wechat', '111');
-  $sVerifyMsgSig = $_GET['msg_signature'];
+  $sVerifyMsgSig = urldecode($_GET['msg_signature']);
 // $sVerifyTimeStamp = HttpUtils.ParseUrl("timestamp");
-  $sVerifyTimeStamp = $_GET['timestamp'];
+  $sVerifyTimeStamp = urldecode($_GET['timestamp']);
 // $sVerifyNonce = HttpUtils.ParseUrl("nonce");
-  $sVerifyNonce = $_GET['nonce'];
+  $sVerifyNonce = urldecode($_GET['nonce']);
 // $sVerifyEchoStr = HttpUtils.ParseUrl("echostr");
-  $sVerifyEchoStr = $_GET['echostr'];
+  $sVerifyEchoStr = urldecode($_GET['echostr']);
 
 // 需要返回的明文
   $sEchoStr = "";
