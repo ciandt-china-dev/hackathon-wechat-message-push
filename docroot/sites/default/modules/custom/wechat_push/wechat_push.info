@@ -1,0 +1,5 @@
+name = Wechat push Module
+core = 7.x
+package = wechat_push
+version = 7.x-1.0
+description = 'Wechat push Module.'

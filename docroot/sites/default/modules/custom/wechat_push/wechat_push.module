@@ -1,0 +1,43 @@
+<?php
+/**
+ * @file
+ * wechat_push module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function wechat_push_menu() {
+  $items['authorize'] = array(
+    'page callback' => 'wechat_get_login_info',
+    'access callback' => TRUE,
+    'file' => 'inc/wechat_push.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['wechat'] = array(
+    'title' => 'wechat',
+    'description' => 'wechat callback',
+    'page callback' => 'wechat_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/wechat_push.inc',
+  );
+  $items['wechatpush/settings'] = array(
+    'title' => 'Wechat push settings',
+    'description' => 'Wechat push settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('wechat_push_setting_form'),
+    'access arguments' => array('common setting configuration'),
+    'file' => 'inc/wechat_push.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['push'] = array(
+    'page callback' => 'wechat_set_message',
+    'access callback' => TRUE,
+    'file' => 'inc/wechat_push.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+
