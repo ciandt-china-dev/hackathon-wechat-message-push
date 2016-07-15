@@ -1,0 +1,4 @@
+name = Wechat Request
+description = "Deal with the request wechat."
+core = 7.x
+package = Wechat
