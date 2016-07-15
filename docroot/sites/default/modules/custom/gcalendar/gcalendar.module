@@ -152,6 +152,14 @@ function gcalendar_get_google_token($state = array()) {
 
     watchdog('gcalendar', 'access token: @token', array('@token' => $auth_obj->access_token), WATCHDOG_DEBUG);
     watchdog('gcalendar', 'refresh token: @token', array('@token' => $auth_obj->refresh_token), WATCHDOG_DEBUG);
+    
+    $result = array();
+    $result['refresh_token'] = $auth_obj->refresh_token;
+    $result['access_token'] = $auth_obj->access_token;
+    return $result;
+  }
+  else {
+    return array('redirect' => $request_to);
   }
   
   // TODO redirect back
