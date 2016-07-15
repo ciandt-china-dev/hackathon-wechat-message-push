@@ -113,9 +113,9 @@ function wechat_callback() {
   if ($signature != $msg_signature) {
     return;
   }
-
   $result = $pc->decrypt($echostr, $corpId);
-  watchdog('wechat_push', $result);
+  
+  watchdog('wechat_push', 333);
   if ($result[0] != 0) {
     return $result[0];
   }
