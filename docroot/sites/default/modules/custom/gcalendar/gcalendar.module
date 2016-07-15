@@ -172,6 +172,7 @@ function gcalendar_get_connection_settings($use_og = TRUE, $group_context = NULL
  */
 function gcalendar_set_up_watch_channel() {
   global $user;
+  $user = user_load($user->uid);
   try {
     $client = _gcalendar_get_google_client();
     $service = new Google_Service_Calendar($client);
@@ -185,7 +186,7 @@ function gcalendar_set_up_watch_channel() {
     $return = $service->events->watch('primary', $channel);
     
     if ($channel_id  = $return->getId()) {
-      $user->field_gcalendar_watch_channel_id[0][LANGUAGE_NONE]['value'] = $channel_id;
+      $user->field_gcalendar_watch_channel_id[LANGUAGE_NONE][0]['value'] = $channel_id;
     }
   }
   catch (Exception $e) {
