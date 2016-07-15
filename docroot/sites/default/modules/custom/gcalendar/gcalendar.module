@@ -120,21 +120,21 @@ function gcalendar_get_google_token($state = array()) {
    * bundle in the session, and redirect to ourself.
    ************************************************/
   if (isset($_GET['code'])) {
-    $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+    $token = $client->authenticate($_GET['code']);
     $client->setAccessToken($token);
     
-    $user->data['gcalender_access_token'] = $auth_obj->access_token;
-    $user->data['gcalender_refresh_token'] = $auth_obj->refresh_token;
-    $user->data['gcalender_auth_response'] = $json_response;
+    $user->data['gcalender_access_token'] = $token;
+//    $user->data['gcalender_refresh_token'] = $auth_obj->refresh_token;
+//    $user->data['gcalender_auth_response'] = $json_response;
     
     user_save($user);
 
-    watchdog('gcalendar', 'access token: @token', array('@token' => $auth_obj->access_token), WATCHDOG_DEBUG);
-    watchdog('gcalendar', 'refresh token: @token', array('@token' => $auth_obj->refresh_token), WATCHDOG_DEBUG);
+    watchdog('gcalendar', 'access token: @token', array('@token' => $token), WATCHDOG_DEBUG);
+ //   watchdog('gcalendar', 'refresh token: @token', array('@token' => $auth_obj->refresh_token), WATCHDOG_DEBUG);
     
     $result = array();
-    $result['refresh_token'] = $auth_obj->refresh_token;
-    $result['access_token'] = $auth_obj->access_token;
+//    $result['refresh_token'] = $auth_obj->refresh_token;
+    $result['access_token'] = $token;
     return $result;
   }
   else {
