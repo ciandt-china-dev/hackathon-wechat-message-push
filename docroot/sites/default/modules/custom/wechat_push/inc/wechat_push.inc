@@ -176,6 +176,8 @@ function wechat_callback(){
     'token' => variable_get('token', ""),
     'appid' => variable_get('wechat_appid', ""),
     'appsecret' => variable_get('wechat_appsecret', ""),
+    'encodingaeskey' => variable_get('encodingAesKey' , ""),
+    'agentid' => variable_get('agentid', ""),
   );
   $we_obj = new Wechat($options);
   $we_obj->valid();
