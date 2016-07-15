@@ -53,7 +53,7 @@ class wechat-push {
     # create wechat-push database
     exec { "create-mysql-database":
         unless => "echo 'SHOW DATABASES' | mysql -uroot -p$mysqlpw | grep wechat-push",
-        command => "echo 'CREATE DATABASE wechat-push' | mysql -uroot -p$mysqlpw",
+        command => "echo 'CREATE DATABASE wechat_push' | mysql -uroot -p$mysqlpw",
         require => Exec["set-mysql-password"],
     }
 
