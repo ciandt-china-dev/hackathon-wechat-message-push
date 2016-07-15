@@ -97,7 +97,7 @@ function wechat_callback() {
   $token = variable_get('token', "");
   $encodingAesKey = variable_get('encodingAesKey', "");
   $corpId = variable_get('wechat_appid', "");
-
+  watchdog('wechat',$echostr);
   if (strlen($encodingAesKey) != 43) {
     return;
   }
