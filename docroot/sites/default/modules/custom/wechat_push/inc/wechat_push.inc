@@ -142,6 +142,7 @@ function getSHA1($token, $timestamp, $nonce, $encrypt_msg)
 }
 
 function wechat_callback(){
+  watchdog('wechat', '111');
   module_load_include('php', 'wechat_push', 'php/WXBizMsgCrypt');
   $encodingAesKey = variable_get('encodingAesKey', "");
   $token = variable_get('token', "");
