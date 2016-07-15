@@ -3,7 +3,7 @@
  * @file
  * Enbrel admin from.
  */
-include_once "WXBizMsgCrypt.php";
+
 /**
  * wechat get access_token
  */
