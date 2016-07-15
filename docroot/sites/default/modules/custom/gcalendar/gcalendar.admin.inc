@@ -141,15 +141,15 @@ function gcalendar_get_google_token_page() {
   $client_secret = $connection_info['client_secret'];
   // Ensure a proper token has been passed.
   $state = array();
-  if (isset($_GET['code'])) {
-    if (!empty($_GET['state'])) {
-      $state = unserialize($_GET['state']);
-    }
-    $token = empty($state['token']) ? NULL : $state['token'];
-    if (!$token || !drupal_valid_token($token, $client_secret)) {
-      return drupal_access_denied();
-    }
-  }
+//  if (isset($_GET['code'])) {
+//    if (!empty($_GET['state'])) {
+//      $state = unserialize($_GET['state']);
+//    }
+//    $token = empty($state['token']) ? NULL : $state['token'];
+//    if (!$token || !drupal_valid_token($token, $client_secret)) {
+//      return drupal_access_denied();
+//    }
+//  }
 
   $result = gcalendar_get_google_token();
   if (!empty($result['refresh_token'])) {
