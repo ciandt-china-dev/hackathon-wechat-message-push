@@ -38,8 +38,6 @@ function gcalendar_menu() {
 }
 
 function gcalendar_callback() {
-  $header = getallheaders();
-  watchdog('calendar', var_export($header, TRUE));
   watchdog('calendar', var_export($_POST, TRUE));
   watchdog('calendar', var_export($_SERVER, TRUE));
 
