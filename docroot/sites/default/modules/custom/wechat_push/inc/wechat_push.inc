@@ -119,6 +119,7 @@ function wechat_callback() {
   }
 
   $sReplyEchoStr = $result[1];
+  watchdog('wachat', '1111');
   echo $sReplyEchoStr;
   exit();
 }
