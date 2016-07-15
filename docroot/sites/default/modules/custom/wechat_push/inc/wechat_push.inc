@@ -146,14 +146,13 @@ function wechat_callback(){
   $encodingAesKey = variable_get('encodingAesKey', "");
   $token = variable_get('token', "");
   $corpId = variable_get('wechat_appid', "");
-  watchdog('wechat', '111');
-  $sVerifyMsgSig = urldecode($_GET['msg_signature']);
+  $sVerifyMsgSig = $_GET['msg_signature'];
 // $sVerifyTimeStamp = HttpUtils.ParseUrl("timestamp");
-  $sVerifyTimeStamp = urldecode($_GET['timestamp']);
+  $sVerifyTimeStamp = $_GET['timestamp'];
 // $sVerifyNonce = HttpUtils.ParseUrl("nonce");
-  $sVerifyNonce = urldecode($_GET['nonce']);
+  $sVerifyNonce = $_GET['nonce'];
 // $sVerifyEchoStr = HttpUtils.ParseUrl("echostr");
-  $sVerifyEchoStr = urldecode($_GET['echostr']);
+  $sVerifyEchoStr = $_GET['echostr'];
 
 // 需要返回的明文
   $sEchoStr = "";
@@ -161,7 +160,7 @@ function wechat_callback(){
   $wxcpt = new WXBizMsgCrypt($token, $encodingAesKey, $corpId);
   $errCode = $wxcpt->VerifyURL($sVerifyMsgSig, $sVerifyTimeStamp, $sVerifyNonce, $sVerifyEchoStr, $sEchoStr);
   if ($errCode == 0) {
-    //
+    echo $sEchoStr;
     // 验证URL成功，将sEchoStr返回
     // HttpUtils.SetResponce($sEchoStr);
   } else {
