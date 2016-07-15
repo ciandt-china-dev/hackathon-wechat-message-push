@@ -55,7 +55,7 @@ function _wechat_init_obj() {
   if (!isset($we_obj)) {
     module_load_include('php', 'wechat_push', 'sdk/qywechat.class');
     $options = array(
-      'token' => variable_get('wechat_token', ""),
+      'token' => 'kB2E1lbm8uMPRgQo9CreV',
       'appid' => variable_get('wechat_appid', ""),
       'appsecret' => variable_get('wechat_appsecret', ""),
     );
@@ -65,10 +65,10 @@ function _wechat_init_obj() {
 }
 
 function wechat_set_message($account = NULL, $content = NULL) {
-  $touser = 'linwuhen';
+  $touser = 'weynhamz';
   $toparty = '';
   $totag = '';
-  $agentid = variable_get('agentid', "");
+  $agentid = 8;
   $content = isset($content) ? $content : 'this is test';
 
   $we_obj = _wechat_init_obj();
@@ -85,8 +85,9 @@ function wechat_set_message($account = NULL, $content = NULL) {
     ),
     'safe' => 0,
   );
+  watchdog('wechat msg data', '<pre>' . var_export($data, TRUE) . '</pre>');
   $result = $we_obj->sendMessage($data);
-  var_dump($result);
+  watchdog('wechat msg result', '<pre>' . var_export($result, TRUE) . '</pre>');
 }
 
 /*function wechat_callback() {

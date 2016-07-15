@@ -113,8 +113,15 @@ function gcalendar_callback() {
   watchdog('calendar changed events', '<pre>' . var_export($update, TRUE) . '</pre>');
   
   // TODO Theme event for output
+
+  module_load_include('inc', 'wechat_push', 'inc/wechat_push');
   
   // TODO call wechat to send the updates
+  foreach($update as $event) {
+    watchdog('calendar changed events', '<pre>' . var_export($event, TRUE) . '</pre>');
+    watchdog('calendar changed events', '<pre>' . var_export($event->getSummary(), TRUE) . '</pre>');
+    wechat_set_message(null, $event->getSummary());
+  }
 
   http_response_code(200);
 
@@ -198,9 +205,7 @@ function gcalendar_set_up_watch_channel() {
     $channel = new Google_Service_Calendar_Channel();
     $channel->setId($channel_id);
     $channel->setType('web_hook');
-    //$channel->setAddress("https://" . $_SERVER['HTTP_HOST'] . "/gcalendar");
-    //$channel->setAddress("https://hackathon-wx2.ciandt.cn/gcalendar");
-    $channel->setAddress("https://nxbwuyulwc.localtunnel.me/gcalendar");
+    $channel->setAddress("https://" . $_SERVER['HTTP_HOST'] . "/gcalendar");
 
     $return = $service->events->watch('primary', $channel);
 
