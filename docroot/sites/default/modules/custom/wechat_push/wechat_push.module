@@ -77,3 +77,46 @@ function wechat_push_theme($existing, $type, $theme, $path) {
 
   );
 }
+
+/**
+ * Implements hook_entity_info().
+ */
+function wechat_push_entity_info() {
+  $return = array(
+    'wechat_app' => array(
+      'label' => t('Wechat Application'),
+      'plural label' => t('Wechat Applications'),
+      'description' => t('An entity type to present Wechat application'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'wechat_app',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'id',
+        'label' => 'label',
+//        'bundle' => 'name',
+      ),
+      // Make use the class' label() and uri() implementation by default.
+      'label callback' => 'entity_class_label',
+      'uri callback' => 'entity_class_uri',
+//      'bundles' => array(),
+//      'bundle keys' => array(
+//        'bundle' => 'name',
+//      ),
+      'module' => 'wechat_push',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/structure/wechat',
+        'file' => 'inc/wechat_push.admin.inc',
+        'controller class' => 'EntityDefaultUIController',
+      ),
+      'access callback' => 'wechat_push_access',
+    ),
+  );
+
+  return $return;
+}
+
+function wechat_push_access() {
+  return TRUE;
+}
