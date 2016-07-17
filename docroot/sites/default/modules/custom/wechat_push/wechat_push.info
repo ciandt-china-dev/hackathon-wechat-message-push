@@ -2,4 +2,3 @@ name = Wechat Push
 core = 7.x
 package = Wechat Push
 description = Receive third-part messages and send message via wechat API.
-files[] = wechat_push.inc
