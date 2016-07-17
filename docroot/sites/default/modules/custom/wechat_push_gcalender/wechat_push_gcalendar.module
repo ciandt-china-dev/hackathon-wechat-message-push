@@ -50,8 +50,8 @@ function _wechat_push_gcalendar_authenticate() {
 
   watchdog('calendar changed events', '<pre>' . var_export($_GET, TRUE) . '</pre>');
 
-  $we_obj = _wechat_init_obj(3);
-  $access_token = wechat_get_access_token(3);
+  $we_obj = _wechat_init_obj(1);
+  $access_token = wechat_get_access_token(1);
   $we_obj->checkAuth('', '', $access_token);
 
   if (!isset($_GET['code'])) {
@@ -141,7 +141,7 @@ function wechat_push_gcalendar_gcalendar_notify($events) {
         break;
     }
     watchdog('calendar changed message', '2222<pre>' . var_export($message, TRUE) . '</pre>');
-    wechat_set_message(3, $user->name, $message);
+    wechat_set_message(1, $user->name, $message);
   }
 }
 
