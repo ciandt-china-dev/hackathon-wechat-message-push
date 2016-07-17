@@ -1,19 +1,93 @@
 <?php
 /**
  * @file
- * Deal request wechat info.
+ * 
+ * wechat_push_gcalendar.module
+ * 
+ * 1. Create Wechat Menu for Google
+ *     1. Authenticate Google and create watch channel
+ *     2. Get agenda of the net 24 hours
+ * 2. Format Google Event to Wechat message body (text/html)
+ * 3. Send the message
  */
 
 /**
  * Implements hook_menu().
  */
-function wechat_push_gcalender_menu() {
+function wechat_push_gcalendar_menu() {
   $items = array();
-  $items['wechat/requesturl'] = array(
-    'page callback' => '_wechat_push_gcalender_info_url',
-    'file' => 'includes/wechat_push_gcalender.menu.inc',
+  $items['wechat/gcalendar/auth'] = array(
+    'page callback' => '_wechat_push_gcalendar_authenticate',
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  
+  $items['wechat/gcalendar/list'] = array(
+    'page callback' => '_wechat_push_gcalendar_get_agendar',
     'type' => MENU_CALLBACK,
     'access callback' => TRUE,
   );
   return $items;
+}
+
+
+/**
+ * Init Wechat Menu
+ */
+function wechat_push_gcalendar_init_menu() {
+  
+}
+
+/**
+ * Request wechat info callback.
+ */
+function _wechat_push_gcalendar_authenticate() {
+  global $user;
+    
+  //$url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect";
+  //$json = file_get_contents($url);
+  $json = '{"user_id":"eleven"}';
+  $array = json_decode($json, TRUE);
+  $name = $array['user_id'];
+  $data = db_select('users', 'u')
+    ->fields('u', array('uid'))
+    ->condition('name', $name, '=')
+    ->execute()
+    ->fetchAssoc();
+
+  if (empty($data)) {
+    // exist user
+    $user = array(
+      'name' => $name,
+      'status' => 1,
+    );
+    user_save($account, $user);
+    //drupal_goto();
+  }
+  else{
+    // todo create new user
+    //drupal_goto();
+  }
+  
+  gcalendar_get_google_token();
+  
+  gcalendar_init_watch_channel();
+  
+  // todo close the page and send notifications
+}
+
+function _wechat_push_gcalendar_get_agendar() {
+  
+}
+
+function wechat_push_gcalendar_gcalendar_notify($events) {
+  // call wechat to send the updates
+  module_load_include('inc', 'wechat_push', 'inc/wechat_push');
+
+  foreach ($events as $event) {
+    // TODO Theme event for output
+    watchdog('calendar changed events', '<pre>' . var_export($event, TRUE) . '</pre>');
+    watchdog('calendar changed events', '<pre>' . var_export($event->getSummary(), TRUE) . '</pre>');
+    wechat_set_message(NULL, $event->getSummary());
+  }
 }

@@ -21,7 +21,6 @@ function gcalendar_menu() {
   );
 
   $items['gcalendar_notify'] = array(
-    'title' => 'gcalendar',
     'type' => MENU_CALLBACK,
     'page callback' => 'gcalendar_notify',
     'access callback' => TRUE,
@@ -86,17 +85,15 @@ function gcalendar_notify() {
 
   watchdog('calendar changed events', '<pre>' . var_export($update, TRUE) . '</pre>');
 
-  // hook for send the updates
-
-  // call wechat to send the updates
-  module_load_include('inc', 'wechat_push', 'inc/wechat_push');
-
-  foreach ($update as $event) {
-    // TODO Theme event for output
-    watchdog('calendar changed events', '<pre>' . var_export($event, TRUE) . '</pre>');
-    watchdog('calendar changed events', '<pre>' . var_export($event->getSummary(), TRUE) . '</pre>');
-    wechat_set_message(NULL, $event->getSummary());
+  // todo hook for send the updates
+  $hook = 'gcalendar_notify';
+  foreach (module_implements($hook) as $module) {
+    $function = $module . '_' . $hook;
+    if (function_exists($function)) {
+      $function($updates);
+    }
   }
+
 
   http_response_code(200);
 
