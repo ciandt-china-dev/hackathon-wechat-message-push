@@ -53,6 +53,7 @@ class WXBizMsgCrypt
 		$pc = new Prpcrypt($this->m_sEncodingAesKey);
 		//verify msg_signature
 		$sha1 = new SHA1;
+		watchdog('calendar', 'sEchoStr:<pre>' . var_export($sEchoStr, TRUE) . '</pre>');
 		$array = $sha1->getSHA1($this->m_sToken, $sTimeStamp, $sNonce, $sEchoStr);
 		$ret = $array[0];
 

@@ -23,6 +23,7 @@ class SHA1
 			$array = array($encrypt_msg, $token, $timestamp, $nonce);
 			sort($array, SORT_STRING);
 			$str = implode($array);
+			watchdog('calendar', 'str:<pre>' . var_export($array, TRUE) . '</pre>');
 			watchdog('calendar', 'str:<pre>' . var_export($str, TRUE) . '</pre>');
 			watchdog('calendar', 'sha:<pre>' . var_export(sha1($str), TRUE) . '</pre>');
 			return array(ErrorCode::$OK, sha1($str));

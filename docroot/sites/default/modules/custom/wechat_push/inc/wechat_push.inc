@@ -101,6 +101,7 @@ function wechat_callback($app_id){
 
   if (isset($_GET['echostr'])) {
     $sVerifyEchoStr = urldecode($_GET['echostr']);
+    watchdog('calendar', '<pre>' . var_export($sVerifyEchoStr, TRUE) . '</pre>');
 
     // 需要返回的明文
     $sEchoStr = "";
