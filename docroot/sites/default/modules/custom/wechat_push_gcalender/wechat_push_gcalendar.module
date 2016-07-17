@@ -7,11 +7,11 @@
 /**
  * Implements hook_menu().
  */
-function wechat_request_menu() {
+function wechat_push_gcalender_menu() {
   $items = array();
   $items['wechat/requesturl'] = array(
-    'page callback' => '_wechat_request_info_url',
-    'file' => 'includes/wechat_request.menu.inc',
+    'page callback' => '_wechat_push_gcalender_info_url',
+    'file' => 'includes/wechat_push_gcalender.menu.inc',
     'type' => MENU_CALLBACK,
     'access callback' => TRUE,
   );

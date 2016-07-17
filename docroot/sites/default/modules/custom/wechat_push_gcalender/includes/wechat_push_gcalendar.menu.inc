@@ -7,7 +7,7 @@
 /**
  * Request wechat info callback.
  */
-function _wechat_request_info_url() {
+function _wechat_push_gcalender_info_url() {
   //$url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect";
   //$json = file_get_contents($url);
   $json = '{"user_id":"eleven"}';
