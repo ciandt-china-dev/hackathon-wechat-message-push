@@ -44,8 +44,8 @@ function wechat_push_menu() {
 /**
  * Implements hook_init().
  */
-function wechat_push_service_init() {
-  if (!wechat_push_service_check_requiremet()) {
+function wechat_push_init() {
+  if (!wechat_push_check_requiremet()) {
     drupal_set_message(t('Requirements needed!'), 'error');
   }
 }
@@ -55,7 +55,7 @@ function wechat_push_service_init() {
  *
  * @return boolean
  */
-function wechat_push_service_check_requiremet() {
+function wechat_push_check_requiremet() {
   // @TODO Do some check here.
 
   return TRUE;
@@ -64,15 +64,15 @@ function wechat_push_service_check_requiremet() {
 /**
  * Implements hook_theme().
  */
-function wechat_push_service_theme($existing, $type, $theme, $path) {
+function wechat_push_theme($existing, $type, $theme, $path) {
   return array(
-    'wechat_push_service_html' => array(
+    'wechat_push_html' => array(
       'render element' => 'element',
-      'file' => 'templates/wechat_push_service_html_template.inc',
+      'file' => 'templates/wechat_push_html_template.inc',
     ),
-    'wechat_push_service_text' => array(
+    'wechat_push_text' => array(
       'render element' => 'element',
-      'file' => 'templates/wechat_push_service_text_template.inc',
+      'file' => 'templates/wechat_push_text_template.inc',
     ),
 
   );
