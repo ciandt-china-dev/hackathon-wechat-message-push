@@ -1,5 +1,5 @@
-name = Wechat push Module
+name = Wechat Push
 core = 7.x
-package = wechat_push
-version = 7.x-1.0
-description = 'Wechat push Module.'
+package = Wechat Push
+description = Receive third-part messages and send message via wechat API.
+files[] = wechat_push_service.inc

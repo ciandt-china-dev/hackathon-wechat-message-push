@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * wechat_push module.
@@ -40,4 +41,39 @@ function wechat_push_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_init().
+ */
+function wechat_push_service_init() {
+  if (!wechat_push_service_check_requiremet()) {
+    drupal_set_message(t('Requirements needed!'), 'error');
+  }
+}
 
+/**
+ * Check requirements as wechat configurations and so on.
+ *
+ * @return boolean
+ */
+function wechat_push_service_check_requiremet() {
+  // @TODO Do some check here.
+
+  return TRUE;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function wechat_push_service_theme($existing, $type, $theme, $path) {
+  return array(
+    'wechat_push_service_html' => array(
+      'render element' => 'element',
+      'file' => 'templates/wechat_push_service_html_template.inc',
+    ),
+    'wechat_push_service_text' => array(
+      'render element' => 'element',
+      'file' => 'templates/wechat_push_service_text_template.inc',
+    ),
+
+  );
+}
