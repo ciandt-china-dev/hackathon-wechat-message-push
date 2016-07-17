@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/inc/wechat_push.inc';
+
 /**
  * @file
  * wechat_push module.
@@ -15,13 +17,19 @@ function wechat_push_menu() {
     'file' => 'inc/wechat_push.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['wechat'] = array(
-    'title' => 'wechat',
-    'description' => 'wechat callback',
-    'page callback' => 'wechat_callback',
-    'access callback' => TRUE,
+  $items['wechat/callback/%'] = array(
     'type' => MENU_CALLBACK,
     'file' => 'inc/wechat_push.inc',
+    'page callback' => 'wechat_callback',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+  );
+  $items['wechat/app/%/auth'] = array(
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/wechat_push.inc',
+    'page callback' => 'wechat_get_access_token',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
   );
   $items['wechatpush/settings'] = array(
     'title' => 'Wechat push settings',
@@ -37,6 +45,13 @@ function wechat_push_menu() {
     'access callback' => TRUE,
     'file' => 'inc/wechat_push.inc',
     'type' => MENU_CALLBACK,
+  );
+  $items['wechat/configure'] = array(
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/wechat_push.inc',
+    'page callback' => 'wechat_push_set_menu',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
   );
   return $items;
 }
@@ -59,23 +74,6 @@ function wechat_push_check_requiremet() {
   // @TODO Do some check here.
 
   return TRUE;
-}
-
-/**
- * Implements hook_theme().
- */
-function wechat_push_theme($existing, $type, $theme, $path) {
-  return array(
-    'wechat_push_html' => array(
-      'render element' => 'element',
-      'file' => 'templates/wechat_push_html_template.inc',
-    ),
-    'wechat_push_text' => array(
-      'render element' => 'element',
-      'file' => 'templates/wechat_push_text_template.inc',
-    ),
-
-  );
 }
 
 /**
@@ -119,4 +117,23 @@ function wechat_push_entity_info() {
 
 function wechat_push_access() {
   return TRUE;
+}
+
+function wechat_push_set_menu() {
+  $menu = array(
+    'button' => array(
+      0 => array(
+        'type' => 'view',
+        'name' => 'Auth',
+        'key' => 'gcal',
+        "url" => 'http://vxiorffosa.localtunnel.me/wechat/gcalendar/auth'
+      ),
+    ),
+  );
+  $wechat_app = reset(entity_load('wechat_app', array(3)));
+  $we_obj = _wechat_init_obj(3);
+  $access_token = wechat_get_access_token(3);
+  $we_obj->checkAuth('', '', $access_token);
+
+  $we_obj->createMenu($menu, $wechat_app->agent_id);
 }

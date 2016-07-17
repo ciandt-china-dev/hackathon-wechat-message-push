@@ -1,9 +1,9 @@
 <?php
 /**
  * @file
- * 
+ *
  * wechat_push_gcalendar.module
- * 
+ *
  * 1. Create Wechat Menu for Google
  *     1. Authenticate Google and create watch channel
  *     2. Get agenda of the net 24 hours
@@ -21,7 +21,7 @@ function wechat_push_gcalendar_menu() {
     'type' => MENU_CALLBACK,
     'access callback' => TRUE,
   );
-  
+
   $items['wechat/gcalendar/list'] = array(
     'page callback' => '_wechat_push_gcalendar_get_agendar',
     'type' => MENU_CALLBACK,
@@ -35,7 +35,7 @@ function wechat_push_gcalendar_menu() {
  * Init Wechat Menu
  */
 function wechat_push_gcalendar_init_menu() {
-  
+
 }
 
 /**
@@ -43,51 +43,121 @@ function wechat_push_gcalendar_init_menu() {
  */
 function _wechat_push_gcalendar_authenticate() {
   global $user;
-    
-  //$url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect";
-  //$json = file_get_contents($url);
-  $json = '{"user_id":"eleven"}';
-  $array = json_decode($json, TRUE);
-  $name = $array['user_id'];
-  $data = db_select('users', 'u')
-    ->fields('u', array('uid'))
-    ->condition('name', $name, '=')
-    ->execute()
-    ->fetchAssoc();
 
-  if (empty($data)) {
-    // exist user
-    $user = array(
-      'name' => $name,
-      'status' => 1,
-    );
-    user_save($account, $user);
-    //drupal_goto();
+
+  header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+  header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+
+  watchdog('calendar changed events', '<pre>' . var_export($_GET, TRUE) . '</pre>');
+
+  $we_obj = _wechat_init_obj(3);
+  $access_token = wechat_get_access_token(3);
+  $we_obj->checkAuth('', '', $access_token);
+
+  if (!isset($_GET['code'])) {
+    $url = $we_obj->getOauthRedirect("http://" . $_SERVER['HTTP_HOST'] . "/wechat/gcalendar/auth");
+
+    watchdog('calendar changed events', '<pre>' . var_export($url, TRUE) . '</pre>');
+
+    header('Location: ' . $url);
+
+    return;
   }
-  else{
-    // todo create new user
-    //drupal_goto();
+
+  $user_id = $we_obj->getUserId($_GET['code']);
+
+  watchdog('calendar changed events', 'user_id: <pre>' . var_export($user_id, TRUE) . '</pre>');
+
+
+  $query = new EntityFieldQuery();
+
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('name', $user_id['UserId'], '=')
+    ->range(0, 1);
+
+  $result = $query->execute();
+
+  if (isset($result['user'])) {
+    $uids = array_keys($result['user']);
+    $uid = reset($uids);
+    $user = user_load($uid);
+
+    watchdog('calendar', 'found: <pre>' . var_export($user, TRUE) . '</pre>');
   }
+  else {
+    $account = new stdClass;
+    $account->is_new = TRUE;
+    $account->name = $user_id['UserId'];
+    $account->status = TRUE;
+    user_save($account);
+    $user = user_save($account);
+
+    watchdog('calendar', 'create: <pre>' . var_export($user, TRUE) . '</pre>');
+  }
+
+  $user->login = REQUEST_TIME;
   
-  gcalendar_get_google_token();
+  db_update('users')
+    ->fields(array('login' => $user->login))
+    ->condition('uid', $user->uid)
+    ->execute();
   
-  gcalendar_init_watch_channel();
+  drupal_session_regenerate();
+
+  watchdog('calendar', 'cookie: <pre>' . var_export(session_id(), TRUE) . '</pre>');
   
+  gcalendar_get_google_token(TRUE);
   // todo close the page and send notifications
 }
 
 function _wechat_push_gcalendar_get_agendar() {
-  
+
 }
 
 function wechat_push_gcalendar_gcalendar_notify($events) {
+  global $user;
   // call wechat to send the updates
   module_load_include('inc', 'wechat_push', 'inc/wechat_push');
 
   foreach ($events as $event) {
-    // TODO Theme event for output
     watchdog('calendar changed events', '<pre>' . var_export($event, TRUE) . '</pre>');
-    watchdog('calendar changed events', '<pre>' . var_export($event->getSummary(), TRUE) . '</pre>');
-    wechat_set_message(NULL, $event->getSummary());
+    watchdog('calendar changed events', '<pre>' . var_export($event->getStatus(), TRUE) . '</pre>');
+    switch ($event->getStatus()) {
+      case 'confirmed':
+        watchdog('calendar changed events', '1111<pre>' . var_export($event->getStatus(), TRUE) . '</pre>');
+        $message = theme('wechat_push_calendar_text_confirmed', array('event' => $event));
+        watchdog('calendar changed message', '<pre>' . var_export($message, TRUE) . '</pre>');
+        // distinguaish the items I created and I was envited
+        if ($event->getCreator()->getEmail() == $user->mail) {
+          return;
+        }
+        // TODO need to find changes between events
+        break;
+      case 'cancelled':
+        // todo inoder to get detail of cancelled event, the original event has to be saved first
+        $message = 'It seems a event has been cancelled, but unfortuanely, I can not give you any detail for now. I will be implemented very soon';
+        break;
+      default:
+        break;
+    }
+    watchdog('calendar changed message', '2222<pre>' . var_export($message, TRUE) . '</pre>');
+    wechat_set_message(3, $user->name, $message);
   }
 }
+
+/**
+ * Implements hook_theme().
+ */
+function wechat_push_gcalendar_theme() {
+  return array(
+    'wechat_push_calendar_text_confirmed' => array(
+      'variables' => array('event' => NULL),
+      'template' => 'wechat-push-calendar-text-confirmed',
+    ),
+    'wechat_push_calendar_text_cancelled' => array(
+      'variables' => array('event' => NULL),
+      'template' => 'wechat-push-calendar-text-cancelled',
+    ),
+  );
+}
+
