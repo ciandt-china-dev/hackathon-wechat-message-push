@@ -62,6 +62,8 @@ class WXBizMsgCrypt
 
 		$signature = $array[1];
 		if ($signature != $sMsgSignature) {
+			watchdog('calendar', 'signature:<pre>' . var_export($signature, TRUE) . '</pre>');
+			watchdog('calendar', 'sMsgSignature:<pre>' . var_export($sMsgSignature, TRUE) . '</pre>');
 			return ErrorCode::$ValidateSignatureError;
 		}
 
